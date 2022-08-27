@@ -26,17 +26,19 @@ contract ExchangeTest is Test {
         assertEq(exchange.getReserve(), 200 wei);
     }
 
-    function testPrice() public {
+    function testGetTokenAmount() public {
         token.approve(address(exchange), 2000 wei);
         exchange.addLiquidity{value: 1000 wei}(2000 wei);
 
-        uint256 tokenReserve = exchange.getReserve();
-        uint256 etherReserve = address(exchange).balance;
+        uint256 tokensOut = exchange.getTokenAmount(1 wei);
+        assertEq(tokensOut, 1998); // ((1 * 2000) * 1000) / (1 + 1000)
+    }
 
-        // ETH per Token
-        assertEq(exchange.getPrice(etherReserve, tokenReserve), 500); // (1000 * 1000) / 2000 = 500
+    function testGetEthAmount() public {
+        token.approve(address(exchange), 2000 wei);
+        exchange.addLiquidity{value: 1000 wei}(2000 wei);
 
-        // Token per ETH
-        assertEq(exchange.getPrice(tokenReserve, etherReserve), 2000); // (2000 * 1000) / 1000 = 20000
+        uint256 ethOut = exchange.getEthAmount(2 wei);
+        assertEq(ethOut, 999);
     }
 }
