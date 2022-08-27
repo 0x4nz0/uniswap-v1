@@ -32,6 +32,12 @@ contract ExchangeTest is Test {
 
         uint256 tokensOut = exchange.getTokenAmount(1 wei);
         assertEq(tokensOut, 1998); // ((1 * 2000) * 1000) / (1 + 1000)
+
+        tokensOut = exchange.getTokenAmount(100 wei);
+        assertEq(tokensOut, 181818); // ((100 * 2000) * 1000) / (100 + 1000)
+
+        tokensOut = exchange.getTokenAmount(1000 wei);
+        assertEq(tokensOut, 1000000); // ((1000 * 2000) * 1000) / (1000 + 1000)
     }
 
     function testGetEthAmount() public {
@@ -39,6 +45,12 @@ contract ExchangeTest is Test {
         exchange.addLiquidity{value: 1000 wei}(2000 wei);
 
         uint256 ethOut = exchange.getEthAmount(2 wei);
-        assertEq(ethOut, 999);
+        assertEq(ethOut, 999); // ((2 * 1000) * 1000) / (2 + 2000)
+
+        ethOut = exchange.getEthAmount(100 wei);
+        assertEq(ethOut, 47619); // ((100 * 1000) * 1000) / (100 + 2000)
+
+        ethOut = exchange.getEthAmount(2000 wei);
+        assertEq(ethOut, 500000); // ((2000 * 1000) * 1000) / (2000 + 2000)
     }
 }
