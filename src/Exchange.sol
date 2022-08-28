@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 interface IERC20 {
     function balanceOf(address) external view returns (uint256);
+    function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
 }
 
@@ -24,16 +25,6 @@ contract Exchange {
         return IERC20(tokenAddress).balanceOf(address(this));
     }
 
-    function getAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve)
-        private
-        pure
-        returns (uint256)
-    {
-        require(inputReserve > 0 && outputReserve > 0, "invalid reserves");
-
-        return ((inputAmount * outputReserve) * 1000) / (inputReserve + inputAmount);
-    }
-
     function getTokenAmount(uint256 _ethSold) public view returns (uint256) {
         require(_ethSold > 0, "ethSold is too small");
 
@@ -48,5 +39,25 @@ contract Exchange {
         uint256 tokenReserve = getReserve();
 
         return getAmount(_tokenSold, tokenReserve, address(this).balance);
+    }
+
+    function tokenToEthSwap(uint256 _tokensSold, uint256 _minEth) public {
+        uint256 tokenReserve = getReserve();
+        uint256 ethBought = getAmount(_tokensSold, tokenReserve, address(this).balance);
+
+        require(ethBought >= _minEth, "insufficient output amount");
+
+        IERC20(tokenAddress).transferFrom(msg.sender, address(this), _tokensSold);
+        payable(msg.sender).transfer(ethBought);
+    }
+
+    function getAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve)
+        private
+        pure
+        returns (uint256)
+    {
+        require(inputReserve > 0 && outputReserve > 0, "invalid reserves");
+
+        return ((inputAmount * outputReserve) * 1000) / (inputReserve + inputAmount);
     }
 }
