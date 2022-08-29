@@ -44,19 +44,19 @@ contract ExchangeTest is Test {
         assertEq(liquidity, 100 wei);
 
         // addLiquidity with existing reserves
-        // liquidity = (100 * 50) / 150 = 33
+        // liquidity = (100 * 50) / 100 = 50
         liquidity = exchange.addLiquidity{value: 50 wei}(200 wei);
-        assertEq(liquidity, 33);
+        assertEq(liquidity, 50);
 
-        // ethReserve = 150
+        // ethReserve = 150 - 50 = 100
         // tokenReserve = 200
-        // tokenAmount = (50 * 200) / 150 = 66
-        // reserve = 200 + 66 = 266
-        assertEq(exchange.getReserve(), 266 wei);
+        // tokenAmount = (50 * 200) / 100 = 100
+        // reserve = 200 + 100 = 300
+        assertEq(exchange.getReserve(), 300 wei);
 
-        // totalSupply = 100 + 33 = 133
-        assertEq(exchange.balanceOf(address(this)), 133 wei);
-        assertEq(exchange.totalSupply(), 133 wei);
+        // totalSupply = 100 + 50 = 150
+        assertEq(exchange.balanceOf(address(this)), 150 wei);
+        assertEq(exchange.totalSupply(), 150 wei);
     }
 
     function testGetTokenAmount() public {

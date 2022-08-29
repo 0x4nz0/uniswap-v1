@@ -29,7 +29,7 @@ contract Exchange is ERC20 {
 
             return liquidity;
         } else {
-            uint256 ethReserve = address(this).balance;
+            uint256 ethReserve = address(this).balance - msg.value;
             uint256 tokenReserve = getReserve();
             uint256 tokenAmount = (msg.value * tokenReserve) / ethReserve;
             require(_tokenAmount >= tokenAmount, "insufficient token amount");
