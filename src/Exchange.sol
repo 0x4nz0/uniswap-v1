@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "solmate/tokens/ERC20.sol";
+
 interface IERC20 {
     function balanceOf(address) external view returns (uint256);
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
 }
 
-contract Exchange {
+contract Exchange is ERC20 {
     address public tokenAddress;
 
-    constructor(address _token) {
+    constructor(address _token) ERC20("Uniswap-V1", "UNI-V1", 18) {
         require(_token != address(0), "invalid token address");
 
         tokenAddress = _token;
