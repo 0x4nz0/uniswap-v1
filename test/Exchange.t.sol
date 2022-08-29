@@ -29,6 +29,14 @@ contract ExchangeTest is Test {
         assertEq(exchange.getReserve(), 200 wei);
     }
 
+    function testMintLPTokens() public {
+        token.approve(address(exchange), 200 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
+
+        assertEq(exchange.balanceOf(address(this)), 100 wei);
+        assertEq(exchange.totalSupply(), 100 wei);
+    }
+
     function testGetTokenAmount() public {
         token.approve(address(exchange), 2000 wei);
         exchange.addLiquidity{value: 1000 wei}(2000 wei);
