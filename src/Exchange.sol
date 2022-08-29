@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "solmate/tokens/ERC20.sol";
 
 interface IERC20 {
+    function totalSupply() external view returns (uint256);
     function balanceOf(address) external view returns (uint256);
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
@@ -18,10 +19,15 @@ contract Exchange is ERC20 {
         tokenAddress = _token;
     }
 
-    function addLiquidity(uint256 _tokenAmount) public payable {
+    function addLiquidity(uint256 _tokenAmount) public payable returns (uint256) {
         if (getReserve() == 0) {
             IERC20 token = IERC20(tokenAddress);
             token.transferFrom(msg.sender, address(this), _tokenAmount);
+
+            uint256 liquidity = address(this).balance;
+            _mint(msg.sender, liquidity);
+
+            return liquidity;
         } else {
             uint256 ethReserve = address(this).balance;
             uint256 tokenReserve = getReserve();
@@ -30,6 +36,11 @@ contract Exchange is ERC20 {
 
             IERC20 token = IERC20(tokenAddress);
             token.transferFrom(msg.sender, address(this), tokenAmount);
+
+            uint256 liquidity = (IERC20(address(this)).totalSupply() * msg.value) / ethReserve;
+            _mint(msg.sender, liquidity);
+
+            return liquidity;
         }
     }
 
