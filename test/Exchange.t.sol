@@ -16,6 +16,9 @@ contract ExchangeTest is Test {
 
     function testDeploymentInvariants() public {
         assertEq(exchange.tokenAddress(), address(token));
+        assertEq(exchange.name(), "Uniswap-V1");
+        assertEq(exchange.symbol(), "UNI-V1");
+        assertEq(exchange.totalSupply(), 0);
     }
 
     function testAddLiquidity() public {
