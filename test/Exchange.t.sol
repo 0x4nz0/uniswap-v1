@@ -29,12 +29,34 @@ contract ExchangeTest is Test {
         assertEq(exchange.getReserve(), 200 wei);
     }
 
-    function testMintLPTokens() public {
+    function testMintLPTokensWithEmptyReserves() public {
         token.approve(address(exchange), 200 wei);
         exchange.addLiquidity{value: 100 wei}(200 wei);
 
         assertEq(exchange.balanceOf(address(this)), 100 wei);
         assertEq(exchange.totalSupply(), 100 wei);
+    }
+
+    function testMintLPTokensWithExistingReserves() public {
+        token.approve(address(exchange), 300 wei);
+        // addLiquidity with empty reserves
+        uint256 liquidity = exchange.addLiquidity{value: 100 wei}(200 wei);
+        assertEq(liquidity, 100 wei);
+
+        // addLiquidity with existing reserves
+        // liquidity = (100 * 50) / 150 = 33
+        liquidity = exchange.addLiquidity{value: 50 wei}(200 wei);
+        assertEq(liquidity, 33);
+
+        // ethReserve = 150
+        // tokenReserve = 200
+        // tokenAmount = (50 * 200) / 150 = 66
+        // reserve = 200 + 66 = 266
+        assertEq(exchange.getReserve(), 266 wei);
+
+        // totalSupply = 100 + 33 = 133
+        assertEq(exchange.balanceOf(address(this)), 133 wei);
+        assertEq(exchange.totalSupply(), 133 wei);
     }
 
     function testGetTokenAmount() public {
