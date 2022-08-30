@@ -59,6 +59,16 @@ contract ExchangeTest is Test {
         assertEq(exchange.totalSupply(), 150 wei);
     }
 
+    function testPreserveExchangeRate() public {
+        token.approve(address(exchange), 300 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
+
+        exchange.addLiquidity{value: 50 wei}(200 wei);
+
+        assertEq(address(exchange).balance, 150 wei);
+        assertEq(exchange.getReserve(), 300 wei);
+    }
+
     function testGetTokenAmount() public {
         token.approve(address(exchange), 2000 wei);
         exchange.addLiquidity{value: 1000 wei}(2000 wei);
