@@ -59,6 +59,21 @@ contract ExchangeTest is Test {
         assertEq(exchange.totalSupply(), 150 wei);
     }
 
+    function testCannotMintLPTokens() public {
+        token.approve(address(exchange), 300 wei);
+        // addLiquidity with empty reserves
+        exchange.addLiquidity{value: 100 wei}(200 wei);
+
+        vm.expectRevert(bytes("insufficient token amount"));
+        // addLiquidity with existing reserves
+        exchange.addLiquidity{value: 50 wei}(50 wei);
+        // _tokenAmount = 50
+        // ethReserve = 150 - 50 = 100
+        // tokenReserve = 200
+        // tokenAmount = (50 * 200) / 100 = 100
+        // require(50 >= 100) -> revert
+    }
+
     function testPreserveExchangeRate() public {
         token.approve(address(exchange), 300 wei);
         exchange.addLiquidity{value: 100 wei}(200 wei);
