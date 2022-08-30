@@ -90,6 +90,10 @@ contract Exchange is ERC20 {
     {
         require(inputReserve > 0 && outputReserve > 0, "invalid reserves");
 
-        return ((inputAmount * outputReserve) * 1000) / (inputReserve + inputAmount);
+        uint256 inputAmountWithFee = inputAmount * 99;
+        uint256 numerator = inputAmountWithFee * outputReserve;
+        uint256 denominator = (inputReserve * 100) + inputAmountWithFee;
+
+        return numerator / denominator;
     }
 }
