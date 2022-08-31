@@ -27,16 +27,18 @@ contract ExchangeBaseSetup is Test {
 contract AddLiquidityWithEmptyReservesTest is ExchangeBaseSetup {
     function setUp() public virtual override {
         ExchangeBaseSetup.setUp();
-        token.approve(address(exchange), 200 wei);
-        exchange.addLiquidity{value: 100 wei}(200 wei);
     }
 
     function testAddLiquidity() public {
+        token.approve(address(exchange), 200 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
         assertEq(address(exchange).balance, 100 wei);
         assertEq(exchange.getReserve(), 200 wei);
     }
 
     function testMintLPTokensWithEmptyReserves() public {
+        token.approve(address(exchange), 200 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
         assertEq(exchange.balanceOf(address(this)), 100 wei);
         assertEq(exchange.totalSupply(), 100 wei);
     }
