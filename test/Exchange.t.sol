@@ -98,19 +98,14 @@ contract AddLiquidityWithExistingReservesTest is ExchangeBaseSetup {
     }
 }
 
-contract ExchangeTest is Test {
-    Token public token;
-    Exchange public exchange;
-
-    function setUp() public {
-        token = new Token("Test Token", "TKN", 31337);
-        exchange = new Exchange(address(token));
+contract GetAmountTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+        token.approve(address(exchange), 2000 wei);
+        exchange.addLiquidity{value: 1000 wei}(2000 wei);
     }
 
     function testGetTokenAmount() public {
-        token.approve(address(exchange), 2000 wei);
-        exchange.addLiquidity{value: 1000 wei}(2000 wei);
-
         uint256 tokensOut = exchange.getTokenAmount(1 wei);
         assertEq(tokensOut, 1); // ((1 * 99) * 2000) / ((1000 * 100) + (1 * 99)) = 1,978041739
 
@@ -122,9 +117,6 @@ contract ExchangeTest is Test {
     }
 
     function testGetEthAmount() public {
-        token.approve(address(exchange), 2000 wei);
-        exchange.addLiquidity{value: 1000 wei}(2000 wei);
-
         uint256 ethOut = exchange.getEthAmount(2 wei);
         assertEq(ethOut, 0); // ((2 * 99) * 1000) / ((2000 * 100) + (2 * 99)) = 0,989020869
 
