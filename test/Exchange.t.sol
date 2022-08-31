@@ -24,6 +24,19 @@ contract ExchangeBaseSetup is Test {
     }
 }
 
+contract DeploymentTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+    }
+
+    function testDeploymentInvariants() public {
+        assertEq(exchange.tokenAddress(), address(token));
+        assertEq(exchange.name(), "Uniswap-V1");
+        assertEq(exchange.symbol(), "UNI-V1");
+        assertEq(exchange.totalSupply(), 0);
+    }
+}
+
 contract AddLiquidityWithEmptyReservesTest is ExchangeBaseSetup {
     function setUp() public virtual override {
         ExchangeBaseSetup.setUp();
@@ -92,13 +105,6 @@ contract ExchangeTest is Test {
     function setUp() public {
         token = new Token("Test Token", "TKN", 31337);
         exchange = new Exchange(address(token));
-    }
-
-    function testDeploymentInvariants() public {
-        assertEq(exchange.tokenAddress(), address(token));
-        assertEq(exchange.name(), "Uniswap-V1");
-        assertEq(exchange.symbol(), "UNI-V1");
-        assertEq(exchange.totalSupply(), 0);
     }
 
     function testGetTokenAmount() public {
