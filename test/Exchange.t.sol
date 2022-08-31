@@ -5,6 +5,43 @@ import "forge-std/Test.sol";
 import "../src/Token.sol";
 import "../src/Exchange.sol";
 
+contract ExchangeBaseSetup is Test {
+    Token internal token;
+    Exchange internal exchange;
+
+    address internal owner;
+    address internal user;
+
+    function setUp() public virtual {
+        token = new Token("Test Token", "TKN", 31337);
+        exchange = new Exchange(address(token));
+
+        owner = address(this);
+        vm.label(owner, "Owner");
+
+        user = vm.addr(1);
+        vm.label(user, "User");
+    }
+}
+
+contract AddLiquidityWithEmptyReservesTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+        token.approve(address(exchange), 200 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
+    }
+
+    function testAddLiquidity() public {
+        assertEq(address(exchange).balance, 100 wei);
+        assertEq(exchange.getReserve(), 200 wei);
+    }
+
+    function testMintLPTokensWithEmptyReserves() public {
+        assertEq(exchange.balanceOf(address(this)), 100 wei);
+        assertEq(exchange.totalSupply(), 100 wei);
+    }
+}
+
 contract ExchangeTest is Test {
     Token public token;
     Exchange public exchange;
@@ -21,21 +58,21 @@ contract ExchangeTest is Test {
         assertEq(exchange.totalSupply(), 0);
     }
 
-    function testAddLiquidity() public {
-        token.approve(address(exchange), 200 wei);
-        exchange.addLiquidity{value: 100 wei}(200 wei);
-
-        assertEq(address(exchange).balance, 100 wei);
-        assertEq(exchange.getReserve(), 200 wei);
-    }
-
-    function testMintLPTokensWithEmptyReserves() public {
-        token.approve(address(exchange), 200 wei);
-        exchange.addLiquidity{value: 100 wei}(200 wei);
-
-        assertEq(exchange.balanceOf(address(this)), 100 wei);
-        assertEq(exchange.totalSupply(), 100 wei);
-    }
+    // function testAddLiquidity() public {
+    //     token.approve(address(exchange), 200 wei);
+    //     exchange.addLiquidity{value: 100 wei}(200 wei);
+    //
+    //     assertEq(address(exchange).balance, 100 wei);
+    //     assertEq(exchange.getReserve(), 200 wei);
+    // }
+    //
+    // function testMintLPTokensWithEmptyReserves() public {
+    //     token.approve(address(exchange), 200 wei);
+    //     exchange.addLiquidity{value: 100 wei}(200 wei);
+    //
+    //     assertEq(exchange.balanceOf(address(this)), 100 wei);
+    //     assertEq(exchange.totalSupply(), 100 wei);
+    // }
 
     function testMintLPTokensWithExistingReserves() public {
         token.approve(address(exchange), 300 wei);
