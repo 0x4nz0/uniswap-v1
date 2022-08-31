@@ -36,11 +36,52 @@ contract AddLiquidityWithEmptyReservesTest is ExchangeBaseSetup {
         assertEq(exchange.getReserve(), 200 wei);
     }
 
-    function testMintLPTokensWithEmptyReserves() public {
+    function testMintLPTokens() public {
         token.approve(address(exchange), 200 wei);
         exchange.addLiquidity{value: 100 wei}(200 wei);
         assertEq(exchange.balanceOf(address(this)), 100 wei);
         assertEq(exchange.totalSupply(), 100 wei);
+    }
+}
+
+contract AddLiquidityWithExistingReservesTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+        token.approve(address(exchange), 300 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
+    }
+
+    function testPreserveExchangeRate() public {
+        exchange.addLiquidity{value: 50 wei}(200 wei);
+
+        assertEq(address(exchange).balance, 150 wei);
+        assertEq(exchange.getReserve(), 300 wei);
+    }
+
+    function testMintLPTokens() public {
+        // liquidity = (100 * 50) / 100 = 50
+        uint256 liquidity = exchange.addLiquidity{value: 50 wei}(200 wei);
+        assertEq(liquidity, 50);
+
+        // ethReserve = 150 - 50 = 100
+        // tokenReserve = 200
+        // tokenAmount = (50 * 200) / 100 = 100
+        // reserve = 200 + 100 = 300
+        assertEq(exchange.getReserve(), 300 wei);
+
+        // totalSupply = 100 + 50 = 150
+        assertEq(exchange.balanceOf(address(this)), 150 wei);
+        assertEq(exchange.totalSupply(), 150 wei);
+    }
+
+    function testCannotMintLPTokens() public {
+        // _tokenAmount = 50
+        // ethReserve = 150 - 50 = 100
+        // tokenReserve = 200
+        // tokenAmount = (50 * 200) / 100 = 100
+        // require(50 >= 100) -> revert
+        vm.expectRevert(bytes("insufficient token amount"));
+        exchange.addLiquidity{value: 50 wei}(50 wei);
     }
 }
 
@@ -58,69 +99,6 @@ contract ExchangeTest is Test {
         assertEq(exchange.name(), "Uniswap-V1");
         assertEq(exchange.symbol(), "UNI-V1");
         assertEq(exchange.totalSupply(), 0);
-    }
-
-    // function testAddLiquidity() public {
-    //     token.approve(address(exchange), 200 wei);
-    //     exchange.addLiquidity{value: 100 wei}(200 wei);
-    //
-    //     assertEq(address(exchange).balance, 100 wei);
-    //     assertEq(exchange.getReserve(), 200 wei);
-    // }
-    //
-    // function testMintLPTokensWithEmptyReserves() public {
-    //     token.approve(address(exchange), 200 wei);
-    //     exchange.addLiquidity{value: 100 wei}(200 wei);
-    //
-    //     assertEq(exchange.balanceOf(address(this)), 100 wei);
-    //     assertEq(exchange.totalSupply(), 100 wei);
-    // }
-
-    function testMintLPTokensWithExistingReserves() public {
-        token.approve(address(exchange), 300 wei);
-        // addLiquidity with empty reserves
-        uint256 liquidity = exchange.addLiquidity{value: 100 wei}(200 wei);
-        assertEq(liquidity, 100 wei);
-
-        // addLiquidity with existing reserves
-        // liquidity = (100 * 50) / 100 = 50
-        liquidity = exchange.addLiquidity{value: 50 wei}(200 wei);
-        assertEq(liquidity, 50);
-
-        // ethReserve = 150 - 50 = 100
-        // tokenReserve = 200
-        // tokenAmount = (50 * 200) / 100 = 100
-        // reserve = 200 + 100 = 300
-        assertEq(exchange.getReserve(), 300 wei);
-
-        // totalSupply = 100 + 50 = 150
-        assertEq(exchange.balanceOf(address(this)), 150 wei);
-        assertEq(exchange.totalSupply(), 150 wei);
-    }
-
-    function testCannotMintLPTokens() public {
-        token.approve(address(exchange), 300 wei);
-        // addLiquidity with empty reserves
-        exchange.addLiquidity{value: 100 wei}(200 wei);
-
-        vm.expectRevert(bytes("insufficient token amount"));
-        // addLiquidity with existing reserves
-        exchange.addLiquidity{value: 50 wei}(50 wei);
-        // _tokenAmount = 50
-        // ethReserve = 150 - 50 = 100
-        // tokenReserve = 200
-        // tokenAmount = (50 * 200) / 100 = 100
-        // require(50 >= 100) -> revert
-    }
-
-    function testPreserveExchangeRate() public {
-        token.approve(address(exchange), 300 wei);
-        exchange.addLiquidity{value: 100 wei}(200 wei);
-
-        exchange.addLiquidity{value: 50 wei}(200 wei);
-
-        assertEq(address(exchange).balance, 150 wei);
-        assertEq(exchange.getReserve(), 300 wei);
     }
 
     function testGetTokenAmount() public {
