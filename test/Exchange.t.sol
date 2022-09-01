@@ -133,6 +133,13 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 50); // 250 - 200
     }
 
+    function testBurnLPTokens() public {
+        assertEq(exchange.totalSupply(), 100 wei);
+        exchange.removeLiquidity(25 wei);
+        // _burn(msg.sender, 25)
+        assertEq(exchange.totalSupply(), 75 wei); // 100 - 25
+    }
+
     function testCannotRemoveLiquidity() public {
         vm.expectRevert(stdError.arithmeticError); // burn amount exceeds balance
         exchange.removeLiquidity(101 wei);
