@@ -98,6 +98,14 @@ contract AddLiquidityWithExistingReservesTest is ExchangeBaseSetup {
     }
 }
 
+contract RemoveLiquidityTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+        token.approve(address(exchange), 300 wei);
+        exchange.addLiquidity{value: 100 wei}(200 wei);
+    }
+}
+
 contract GetAmountTest is ExchangeBaseSetup {
     function setUp() public virtual override {
         ExchangeBaseSetup.setUp();
