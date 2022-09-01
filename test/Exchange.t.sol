@@ -12,6 +12,8 @@ contract ExchangeBaseSetup is Test {
     address internal owner;
     address internal user;
 
+    receive() external payable {}
+
     function setUp() public virtual {
         token = new Token("Test Token", "TKN", 31337);
         exchange = new Exchange(address(token));
@@ -52,7 +54,7 @@ contract AddLiquidityWithEmptyReservesTest is ExchangeBaseSetup {
     function testMintLPTokens() public {
         token.approve(address(exchange), 200 wei);
         exchange.addLiquidity{value: 100 wei}(200 wei);
-        assertEq(exchange.balanceOf(address(this)), 100 wei);
+        assertEq(exchange.balanceOf(owner), 100 wei);
         assertEq(exchange.totalSupply(), 100 wei);
     }
 }
@@ -83,7 +85,7 @@ contract AddLiquidityWithExistingReservesTest is ExchangeBaseSetup {
         assertEq(exchange.getReserve(), 300 wei);
 
         // totalSupply = 100 + 50 = 150
-        assertEq(exchange.balanceOf(address(this)), 150 wei);
+        assertEq(exchange.balanceOf(owner), 150 wei);
         assertEq(exchange.totalSupply(), 150 wei);
     }
 
@@ -103,6 +105,32 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         ExchangeBaseSetup.setUp();
         token.approve(address(exchange), 300 wei);
         exchange.addLiquidity{value: 100 wei}(200 wei);
+    }
+
+    function testRemoveSomeLiquidity() public {
+        uint256 userEtherBalanceBefore = owner.balance; // 100
+        uint256 userTokenBalanceBefore = token.balanceOf(owner); // 200
+
+        (uint256 ethAmount, uint256 tokenAmount) = exchange.removeLiquidity(25 wei);
+
+        // ethAmount = (100 * 25) / 100 = 25
+        assertEq(ethAmount, 25 wei);
+        // tokenAmount = (200 * 25) / 100 = 50
+        assertEq(tokenAmount, 50 wei);
+
+        // reserve = 200 - 50 = 150
+        assertEq(exchange.getReserve(), 150 wei);
+        // _burn(msg.sender, 25)
+        // totalSupply = 100 - 25 = 75
+        assertEq(exchange.totalSupply(), 75 wei);
+
+        // 100 + ethAmount = 100 + 25 = 125
+        uint256 userEtherBalanceAfter = owner.balance;
+        // 200 + tokenAmount = 200 + 50 = 250
+        uint256 userTokenBalanceAfter = token.balanceOf(owner);
+
+        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 25); // 125 - 100
+        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 50); // 250 - 200
     }
 }
 
