@@ -132,6 +132,11 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 25); // 125 - 100
         assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 50); // 250 - 200
     }
+
+    function testCannotRemoveLiquidity() public {
+        vm.expectRevert(stdError.arithmeticError); // burn amount exceeds balance
+        exchange.removeLiquidity(101 wei);
+    }
 }
 
 contract GetAmountTest is ExchangeBaseSetup {
