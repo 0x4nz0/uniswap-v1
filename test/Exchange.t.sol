@@ -133,6 +133,32 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 50); // 250 - 200
     }
 
+    function testRemoveAllLiquidity() public {
+        uint256 userEtherBalanceBefore = owner.balance; // 100
+        uint256 userTokenBalanceBefore = token.balanceOf(owner); // 200
+
+        (uint256 ethAmount, uint256 tokenAmount) = exchange.removeLiquidity(100 wei);
+
+        // ethAmount = (100 * 100) / 100 = 100
+        assertEq(ethAmount, 100 wei);
+        // tokenAmount = (200 * 100) / 100 = 200
+        assertEq(tokenAmount, 200 wei);
+
+        // reserve = 200 - 200 = 0
+        assertEq(exchange.getReserve(), 0 wei);
+        // _burn(msg.sender, 100)
+        // totalSupply = 100 - 100 = 0
+        assertEq(exchange.totalSupply(), 0 wei);
+
+        // 100 + ethAmount = 100 + 100 = 200
+        uint256 userEtherBalanceAfter = owner.balance;
+        // 200 + tokenAmount = 200 + 200 = 400
+        uint256 userTokenBalanceAfter = token.balanceOf(owner);
+
+        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 100); // 200 - 100
+        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 200); // 400 - 200
+    }
+
     function testBurnLPTokens() public {
         assertEq(exchange.totalSupply(), 100 wei);
         exchange.removeLiquidity(25 wei);
