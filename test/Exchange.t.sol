@@ -211,6 +211,18 @@ contract EthToTokenSwapTest is ExchangeBaseSetup {
     }
 }
 
+contract TokenToEthSwapTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+        token.transfer(user, 22 wei);
+        vm.prank(user);
+        token.approve(address(exchange), 22 wei);
+
+        token.approve(address(exchange), 2000 wei);
+        exchange.addLiquidity{value: 1000 wei}(2000 wei);
+    }
+}
+
 contract GetAmountTest is ExchangeBaseSetup {
     function setUp() public virtual override {
         ExchangeBaseSetup.setUp();
