@@ -51,7 +51,7 @@ contract AddLiquidityWithEmptyReservesTest is ExchangeBaseSetup {
         assertEq(exchange.getReserve(), 200 wei);
     }
 
-    function testCanMint() public {
+    function testShouldMintLPTokensWhenLiquidityIsAdded() public {
         token.approve(address(exchange), 200 wei);
         exchange.addLiquidity{value: 100 wei}(200 wei);
         assertEq(exchange.balanceOf(owner), 100 wei);
@@ -66,14 +66,14 @@ contract AddLiquidityWithExistingReservesTest is ExchangeBaseSetup {
         exchange.addLiquidity{value: 100 wei}(200 wei);
     }
 
-    function testCanPreserveExchangeRate() public {
+    function testShouldPreserveExchangeRateWhenLiquidityIsAdded() public {
         exchange.addLiquidity{value: 50 wei}(200 wei);
 
         assertEq(address(exchange).balance, 150 wei);
         assertEq(exchange.getReserve(), 300 wei);
     }
 
-    function testCanMint() public {
+    function testShouldMintLPTokensWhenLiquidityIsAdded() public {
         // liquidity = (100 * 50) / 100 = 50
         uint256 liquidity = exchange.addLiquidity{value: 50 wei}(200 wei);
         assertEq(liquidity, 50);
@@ -89,7 +89,7 @@ contract AddLiquidityWithExistingReservesTest is ExchangeBaseSetup {
         assertEq(exchange.totalSupply(), 150 wei);
     }
 
-    function testCannotMint() public {
+    function testCannotAddLiquidityIfNotEnoughTokens() public {
         // _tokenAmount = 50
         // ethReserve = 150 - 50 = 100
         // tokenReserve = 200
@@ -159,7 +159,7 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 200); // y + 200 - y
     }
 
-    function testCanPayForLiquidityProvided() public {
+    function testShouldPayWhenLiquidityIsRemoved() public {
         uint256 userEtherBalanceBefore = owner.balance; // x
         uint256 userTokenBalanceBefore = token.balanceOf(owner); // y
 
@@ -190,14 +190,14 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 182 wei); // y + 182 - y
     }
 
-    function testCanBurn() public {
+    function testShouldBurnLPTokensWhenLiquidityIsRemoved() public {
         assertEq(exchange.totalSupply(), 100 wei);
         exchange.removeLiquidity(25 wei);
         // _burn(msg.sender, 25)
         assertEq(exchange.totalSupply(), 75 wei); // 100 - 25
     }
 
-    function testCannotRemoveLiquidity() public {
+    function testCannotRemoveLiquidityIfInvalidAmount() public {
         vm.expectRevert(stdError.arithmeticError); // burn amount exceeds balance
         exchange.removeLiquidity(101 wei);
     }
