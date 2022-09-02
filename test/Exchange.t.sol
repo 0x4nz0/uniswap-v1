@@ -203,6 +203,14 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
     }
 }
 
+contract EthToTokenSwapTest is ExchangeBaseSetup {
+    function setUp() public virtual override {
+        ExchangeBaseSetup.setUp();
+        token.approve(address(exchange), 2000 wei);
+        exchange.addLiquidity{value: 1000 wei}(2000 wei);
+    }
+}
+
 contract GetAmountTest is ExchangeBaseSetup {
     function setUp() public virtual override {
         ExchangeBaseSetup.setUp();
