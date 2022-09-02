@@ -108,8 +108,8 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
     }
 
     function testRemoveSomeLiquidity() public {
-        uint256 userEtherBalanceBefore = owner.balance; // 100
-        uint256 userTokenBalanceBefore = token.balanceOf(owner); // 200
+        uint256 userEtherBalanceBefore = owner.balance; // x
+        uint256 userTokenBalanceBefore = token.balanceOf(owner); // y
 
         (uint256 ethAmount, uint256 tokenAmount) = exchange.removeLiquidity(25 wei);
 
@@ -124,18 +124,18 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         // totalSupply = 100 - 25 = 75
         assertEq(exchange.totalSupply(), 75 wei);
 
-        // 100 + ethAmount = 100 + 25 = 125
+        // x + ethAmount = x + 25
         uint256 userEtherBalanceAfter = owner.balance;
-        // 200 + tokenAmount = 200 + 50 = 250
+        // y + tokenAmount = y + 50
         uint256 userTokenBalanceAfter = token.balanceOf(owner);
 
-        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 25); // 125 - 100
-        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 50); // 250 - 200
+        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 25); // x + 25 - x
+        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 50); // y + 50 - y
     }
 
     function testRemoveAllLiquidity() public {
-        uint256 userEtherBalanceBefore = owner.balance; // 100
-        uint256 userTokenBalanceBefore = token.balanceOf(owner); // 200
+        uint256 userEtherBalanceBefore = owner.balance; // x
+        uint256 userTokenBalanceBefore = token.balanceOf(owner); // y
 
         (uint256 ethAmount, uint256 tokenAmount) = exchange.removeLiquidity(100 wei);
 
@@ -150,13 +150,44 @@ contract RemoveLiquidityTest is ExchangeBaseSetup {
         // totalSupply = 100 - 100 = 0
         assertEq(exchange.totalSupply(), 0 wei);
 
-        // 100 + ethAmount = 100 + 100 = 200
+        // x + ethAmount = x + 100
         uint256 userEtherBalanceAfter = owner.balance;
-        // 200 + tokenAmount = 200 + 200 = 400
+        // y + tokenAmount = y + 200
         uint256 userTokenBalanceAfter = token.balanceOf(owner);
 
-        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 100); // 200 - 100
-        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 200); // 400 - 200
+        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 100); // x + 100 - x
+        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 200); // y + 200 - y
+    }
+
+    function testPaymentForLiquidityProvided() public {
+        uint256 userEtherBalanceBefore = owner.balance; // x
+        uint256 userTokenBalanceBefore = token.balanceOf(owner); // y
+
+        hoax(user);
+        // tokenReserve = 200
+        // tokensBought = getAmount(10 wei, 110 - 10 wei, 200)
+        // getAmount = ((10 * 99) * 200) / ((100 * 100) + (10 * 99)) = 18,016378526 ~ 18 tokens
+        exchange.ethToTokenSwap{value: 10 wei}(18 wei);
+
+        (uint256 ethAmount, uint256 tokenAmount) = exchange.removeLiquidity(100 wei);
+
+        // ethAmount = (110 * 100) / 100 = 110
+        assertEq(ethAmount, 110 wei);
+        // tokenAmount = ((200 - 18) * 100) / 100 = 182
+        assertEq(tokenAmount, 182 wei);
+
+        // reserve = (200 - 18) - 182 = 0
+        assertEq(exchange.getReserve(), 0 wei);
+        // balance = (100 + 10) - 110 = 0
+        assertEq(address(exchange).balance, 0 wei);
+
+        // x + ethAmount = x + 110
+        uint256 userEtherBalanceAfter = owner.balance;
+        // y + tokenAmount = y + 182
+        uint256 userTokenBalanceAfter = token.balanceOf(owner);
+
+        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 110 wei); // x + 110 - x
+        assertEq(userTokenBalanceAfter - userTokenBalanceBefore, 182 wei); // y + 182 - y
     }
 
     function testBurnLPTokens() public {
