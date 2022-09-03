@@ -248,6 +248,16 @@ contract EthToTokenSwapTest is ExchangeBaseSetup {
         tokensOut = exchange.getTokenAmount(10 wei);
         assertEq(tokensOut, 19 wei);
     }
+
+    function testCannotEthToTokenSwapIfNotEnoughOutputAmount() public {
+        hoax(user, 1 wei);
+        vm.expectRevert(bytes("insufficient output amount"));
+        // tokenReserve = 2000
+        // tokensBought = getAmount(1 wei, 1001 - 1 wei, 2000)
+        // getAmount = ((1 * 99) * 2000) / ((1000 * 100) + (1 * 99)) = 1,976 ~ 1 token
+        // require(1 >= 2) -> revert
+        exchange.ethToTokenSwap{value: 1 wei}(2 wei);
+    }
 }
 
 contract TokenToEthSwapTest is ExchangeBaseSetup {
