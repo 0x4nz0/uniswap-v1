@@ -270,6 +270,33 @@ contract TokenToEthSwapTest is ExchangeBaseSetup {
         token.approve(address(exchange), 2000 wei);
         exchange.addLiquidity{value: 1000 wei}(2000 wei);
     }
+
+    function testTokenToEthSwap() public {
+        startHoax(user, 1 wei);
+        uint256 userEtherBalanceBefore = user.balance;
+        uint256 exchangeEtherBalanceBefore = address(exchange).balance;
+
+        // tokenReserve = 2000
+        // ethBought = getAmount(3 wei, 2000, 1000)
+        // getAmount = ((3 * 99) * 1000) / ((2000 * 100) + (3 * 99)) = 1,4827 ~ 1 wei
+        exchange.tokenToEthSwap(3 wei, 1 wei);
+
+        // (ethBought + 1 wei) - 1 wei = 1 wei
+        uint256 userEtherBalanceAfter = user.balance;
+        assertEq(userEtherBalanceAfter - userEtherBalanceBefore, 1 wei);
+
+        // 22 - tokensBought = 19
+        uint256 userTokenBalance = token.balanceOf(user);
+        assertEq(userTokenBalance, 19 wei);
+
+        // msg.value + 1000 wei
+        uint256 exchangeEtherBalanceAfter = address(exchange).balance;
+        assertEq(exchangeEtherBalanceBefore - exchangeEtherBalanceAfter, 1 wei);
+
+        // 2000 + tokensSold
+        uint256 exchangeTokenBalance = token.balanceOf(address(exchange));
+        assertEq(exchangeTokenBalance, 2003 wei);
+    }
 }
 
 contract GetAmountTest is ExchangeBaseSetup {
