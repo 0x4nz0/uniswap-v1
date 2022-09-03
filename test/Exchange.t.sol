@@ -311,6 +311,15 @@ contract TokenToEthSwapTest is ExchangeBaseSetup {
         ethOut = exchange.getEthAmount(20 wei);
         assertEq(ethOut, 9 wei);
     }
+
+    function testCannotEthToTokenSwapIfNotEnoughOutputAmount() public {
+        vm.expectRevert(bytes("insufficient output amount"));
+        // tokenReserve = 2000
+        // ethBought = getAmount(5 wei, 2000, 1000)
+        // getAmount = ((3 * 99) * 1000) / ((2000 * 100) + (3 * 99)) = 1,4827 ~ 1 wei
+        // require(1 >= 2) -> revert
+        exchange.tokenToEthSwap(3 wei, 2 wei);
+    }
 }
 
 contract GetAmountTest is ExchangeBaseSetup {
