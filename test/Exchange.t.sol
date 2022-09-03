@@ -234,6 +234,20 @@ contract EthToTokenSwapTest is ExchangeBaseSetup {
         uint256 exchangeTokenBalance = token.balanceOf(address(exchange));
         assertEq(exchangeTokenBalance, 1999 wei);
     }
+
+    function testShouldAffectExchangeRateWhenUserSwaps() public {
+        uint256 tokensOut = exchange.getTokenAmount(10 wei);
+        assertEq(tokensOut, 19 wei);
+
+        // tokenReserve = 2000
+        // tokensBought = getAmount(10 wei, 1010 - 10 wei, 2000)
+        // getAmount = ((10 * 99) * 2000) / ((1000 * 100) + (10 * 99)) = 19,76 ~ 19 tokens
+        hoax(user, 10 wei);
+        exchange.ethToTokenSwap{value: 10 wei}(9 wei);
+
+        tokensOut = exchange.getTokenAmount(10 wei);
+        assertEq(tokensOut, 19 wei);
+    }
 }
 
 contract TokenToEthSwapTest is ExchangeBaseSetup {
