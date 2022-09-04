@@ -12,11 +12,13 @@ interface IERC20 {
 
 contract Exchange is ERC20 {
     address public tokenAddress;
+    address public factoryAddress;
 
     constructor(address _token) ERC20("Uniswap-V1", "UNI-V1", 18) {
         require(_token != address(0), "invalid token address");
 
         tokenAddress = _token;
+        factoryAddress = msg.sender;
     }
 
     function addLiquidity(uint256 _tokenAmount) public payable returns (uint256) {
