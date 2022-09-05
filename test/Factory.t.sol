@@ -24,4 +24,11 @@ contract FactoryTest is Test {
         assertEq(exchange.symbol(), "UNI-V1");
         assertEq(exchange.factoryAddress(), address(factory));
     }
+
+    function testCannotCreateExchangeIfExchangeAlreadyExists() public {
+        factory.createExchange(address(token));
+
+        vm.expectRevert(bytes("exchange already exists"));
+        factory.createExchange(address(token));
+    }
 }
