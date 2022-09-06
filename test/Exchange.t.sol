@@ -17,18 +17,18 @@ contract ExchangeBaseSetup is Test {
     receive() external payable {}
 
     function setUp() public virtual {
+        owner = address(this);
+        vm.label(owner, "Owner");
+
+        user = vm.addr(1);
+        vm.label(user, "User");
+
         token = new Token("Test Token", "TKN", 31337);
         factory = new Factory();
 
         address exchangeAddress = factory.createExchange(address(token));
 
         exchange = Exchange(exchangeAddress);
-
-        owner = address(this);
-        vm.label(owner, "Owner");
-
-        user = vm.addr(1);
-        vm.label(user, "User");
     }
 }
 
@@ -359,6 +359,41 @@ contract TokenToEthSwapTest is ExchangeBaseSetup {
         // getAmount = ((3 * 99) * 1000) / ((2000 * 100) + (3 * 99)) = 1,4827 ~ 1 wei
         // require(1 >= 2) -> revert
         exchange.tokenToEthSwap(3 wei, 2 wei);
+    }
+}
+
+contract TokenToTokenSwapTest is Test {
+    Token internal tokenA;
+    Token internal tokenB;
+
+    Factory internal factory;
+
+    Exchange internal exchangeA;
+    Exchange internal exchangeB;
+
+    address internal owner;
+    address internal user;
+
+    function setUp() public {
+        owner = address(this);
+        vm.label(owner, "Owner");
+
+        user = vm.addr(1);
+        vm.label(user, "User");
+
+        tokenA = new Token("Token A", "TKNA", 31337);
+
+        vm.prank(user);
+        tokenB = new Token("Token B", "TKNB", 31337);
+
+        factory = new Factory();
+
+        address exchangeAddress = factory.createExchange(address(tokenA));
+        exchangeA = Exchange(exchangeAddress);
+
+        vm.prank(user);
+        exchangeAddress = factory.createExchange(address(tokenB));
+        exchangeB = Exchange(exchangeAddress);
     }
 }
 
