@@ -42,6 +42,7 @@ contract DeploymentTest is ExchangeBaseSetup {
         assertEq(exchange.name(), "Uniswap-V1");
         assertEq(exchange.symbol(), "UNI-V1");
         assertEq(exchange.totalSupply(), 0);
+        assertEq(exchange.factoryAddress(), address(factory));
     }
 }
 
