@@ -216,6 +216,31 @@ contract EthToTokenTransferTest is ExchangeBaseSetup {
         token.approve(address(exchange), 2000 wei);
         exchange.addLiquidity{value: 1000 wei}(2000 wei);
     }
+
+    function testEthToTokenTransfer() public {
+        startHoax(user, 1 wei);
+        uint256 userEtherBalanceBefore = user.balance;
+
+        // tokenReserve = 2000
+        // tokensBought = getAmount(1 wei, 1001 - 1 wei, 2000)
+        // getAmount = ((1 * 99) * 2000) / ((1000 * 100) + (1 * 99)) = 1,976 ~ 1 token
+        exchange.ethToTokenTransfer{value: 1 wei}(1 wei, user);
+
+        uint256 userEtherBalanceAfter = user.balance;
+        assertEq(userEtherBalanceBefore - userEtherBalanceAfter, 1 wei);
+
+        // tokensBought = 1
+        uint256 userTokenBalance = token.balanceOf(user);
+        assertEq(userTokenBalance, 1 wei);
+
+        // msg.value + 1000 wei
+        uint256 exchangeEtherBalance = address(exchange).balance;
+        assertEq(exchangeEtherBalance, 1001 wei);
+
+        // 2000 - tokensBought
+        uint256 exchangeTokenBalance = token.balanceOf(address(exchange));
+        assertEq(exchangeTokenBalance, 1999 wei);
+    }
 }
 
 contract EthToTokenSwapTest is ExchangeBaseSetup {
@@ -230,7 +255,7 @@ contract EthToTokenSwapTest is ExchangeBaseSetup {
         uint256 userEtherBalanceBefore = user.balance;
 
         // tokenReserve = 2000
-        // tokensBought = getAmount(1 wei, 101 - 1 wei, 2000)
+        // tokensBought = getAmount(1 wei, 1001 - 1 wei, 2000)
         // getAmount = ((1 * 99) * 2000) / ((1000 * 100) + (1 * 99)) = 1,976 ~ 1 token
         exchange.ethToTokenSwap{value: 1 wei}(1 wei);
 
