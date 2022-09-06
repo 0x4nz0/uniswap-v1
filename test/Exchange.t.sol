@@ -4,9 +4,11 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "../src/Token.sol";
 import "../src/Exchange.sol";
+import "../src/Factory.sol";
 
 contract ExchangeBaseSetup is Test {
     Token internal token;
+    Factory internal factory;
     Exchange internal exchange;
 
     address internal owner;
@@ -16,7 +18,11 @@ contract ExchangeBaseSetup is Test {
 
     function setUp() public virtual {
         token = new Token("Test Token", "TKN", 31337);
-        exchange = new Exchange(address(token));
+        factory = new Factory();
+
+        address exchangeAddress = factory.createExchange(address(token));
+
+        exchange = Exchange(exchangeAddress);
 
         owner = address(this);
         vm.label(owner, "Owner");
