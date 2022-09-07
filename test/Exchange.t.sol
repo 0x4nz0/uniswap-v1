@@ -382,18 +382,79 @@ contract TokenToTokenSwapTest is Test {
         vm.label(user, "User");
 
         tokenA = new Token("Token A", "TKNA", 31337);
+        vm.label(address(tokenA), "Token A");
 
         vm.prank(user);
         tokenB = new Token("Token B", "TKNB", 31337);
+        vm.label(address(tokenB), "Token B");
 
         factory = new Factory();
 
         address exchangeAddress = factory.createExchange(address(tokenA));
         exchangeA = Exchange(exchangeAddress);
+        vm.label(exchangeAddress, "Exchange A");
 
         vm.prank(user);
         exchangeAddress = factory.createExchange(address(tokenB));
         exchangeB = Exchange(exchangeAddress);
+        vm.label(exchangeAddress, "Exchange B");
+    }
+
+    function testTokenToTokenSwap() public {
+        tokenA.approve(address(exchangeA), 2000 wei);
+        exchangeA.addLiquidity{value: 1000 wei}(2000 wei);
+        // balanceA = 1000, reservesA = 2000
+        assertEq(address(exchangeA).balance, 1000 wei);
+        assertEq(exchangeA.getReserve(), 2000 wei);
+
+        vm.prank(user);
+        tokenB.approve(address(exchangeB), 1000 wei);
+        hoax(user, 1000 wei);
+        exchangeB.addLiquidity{value: 1000 wei}(1000 wei);
+        // balanceB = 1000, reservesB = 1000
+        assertEq(address(exchangeB).balance, 1000 wei);
+        assertEq(exchangeB.getReserve(), 1000 wei);
+
+        assertEq(tokenB.balanceOf(owner), 0 wei);
+
+        tokenA.approve(address(exchangeA), 10 wei);
+        // exchangeAddressB
+        // reservesA = 2000
+        // ethBought = getAmount(10, 2000, 1000) = 4,9256 ~ 4
+        // tokenA.transferFrom(Owner, Exchange A, 10)
+        // exchangeB.ethToTokenTransfer{value: 4}(3, Owner) -> ethToToken{value: 4}(3, Owner)
+        // reservesB = 1000
+        // tokensBought = getAmount(4, 1004 - 4, 1000) = 3,9443 ~ 3
+        // tokenB.transfer(Owner, 3) -> transfer(Exchange B, Owner, 3)
+        exchangeA.tokenToTokenSwap(10 wei, 3 wei, address(tokenB));
+        assertEq(tokenB.balanceOf(owner), 3);
+
+        assertEq(address(exchangeA).balance, 996 wei); // 1000 - ethBought
+        assertEq(exchangeA.getReserve(), 2010 wei); // 2000 + tokensSold
+        assertEq(address(exchangeB).balance, 1004 wei); // 1000 + ethBought
+        assertEq(exchangeB.getReserve(), 997 wei); // 1000 - tokensBought
+
+        assertEq(tokenA.balanceOf(user), 0 wei);
+
+        vm.prank(user);
+        tokenB.approve(address(exchangeB), 10 wei);
+        vm.prank(user);
+        // exchangeAddressA
+        // reservesB = 997
+        // ethBought = getAmount(10, 997, 1004) = 9,8714 ~ 9
+        // tokenB.transferFrom(User, Exchange B, 10)
+        // exchangeA.ethToTokenTransfer{value: 9}(17, User) -> ethToToken{value: 9}(17, User)
+        // reservesA = 2010
+        // tokensBought = getAmount(9, 1005 - 9, 2010) = 17,6477 ~ 17
+        // tokenA.transfer(User, 17) -> transfer(Exchange A, User, 17)
+        exchangeB.tokenToTokenSwap(10 wei, 17 wei, address(tokenA));
+
+        assertEq(tokenA.balanceOf(user), 17 wei);
+
+        assertEq(address(exchangeA).balance, 1005 wei); // 996 + ethBought
+        assertEq(exchangeA.getReserve(), 1993 wei); // 2010 - tokensBought
+        assertEq(address(exchangeB).balance, 995 wei); // 1004 - ethBought
+        assertEq(exchangeB.getReserve(), 1007 wei); // 997 + tokensSold
     }
 }
 
